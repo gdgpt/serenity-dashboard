@@ -1,0 +1,23 @@
+name: Fetch Serenity Tweets
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch tweets
+        run: python scripts/fetch_serenity_gh.py
+      - name: Commit & push
+        run: |
+          git config user.name "serenity-bot"
+          git config user.email "bot@serenity.local"
+          git add data/tweets_snapshot.json data/serenity.sqlite
+          git diff --staged --quiet || (git commit -m "auto: update tweets $(date -u +%Y%m%d-%H%M)" && git push)
